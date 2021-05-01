@@ -31,13 +31,10 @@ const matchRandomPair = (crews, allowDuplication = false) => {
     );
   } else {
     const gPairs = createPairLogGraph(crews);
-    console.log(gPairs);
   }
 
   if (pairs[pairs.length - 1]?.length < 2) {
   }
 };
 
-console.log(crews);
-console.log(Object.values(crews));
 matchRandomPair(Object.values(crews));

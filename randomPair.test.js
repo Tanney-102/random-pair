@@ -1,5 +1,11 @@
 const { pairLogs } = require("./mocks.js");
 const crews = require("./crews.js");
-const { matchRandomPair } = require("./randomPair.js");
+const { matchRandomPair, isPairsDuplicated } = require("./randomPair.js");
 
-console.log(matchRandomPair(Object.values(crews), pairLogs));
+const matched = matchRandomPair(Object.values(crews), pairLogs);
+
+if (isPairsDuplicated(matched, pairLogs)) {
+  throw Error("There are duplicated crews in pairs");
+}
+
+console.log(matched);

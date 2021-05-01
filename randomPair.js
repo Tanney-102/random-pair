@@ -32,7 +32,22 @@ const createTripletLogSet = (crews, pairLogs) => {
   return tripletLogSet;
 };
 
-// TODO: 최적화 시급
+const isPairsDuplicated = (pairs, pairLogs) => {
+  const crews = pairs.reduce((acc, pair) => [...acc, ...pair], []);
+  const gPairs = createPairLogGraph(crews, pairLogs);
+
+  return pairs.every((pair) => {
+    for (let i = 0; i < pair.length - 1; i++) {
+      for (let j = i; j < pair.length; j++) {
+        if (gPairs[pair[i]].includes(pair[j])) return true;
+      }
+    }
+
+    return false;
+  });
+};
+
+// TODO: 최적화 및 리팩터링 시급
 const matchRandomPair = (crews, pairLogs, allowDuplication = false) => {
   let pairs = [];
 
@@ -70,28 +85,36 @@ const matchRandomPair = (crews, pairLogs, allowDuplication = false) => {
       ];
     }
 
-    pairs = pairEntries.map((entry, index) => {
-      const [crew, prevPairs] = entry;
-      selected.add(crew);
+    pairs = pairEntries
+      .map((entry) => {
+        const [crew, prevPairs] = entry;
 
-      const newPair = shuffle(
-        crews.filter((v) => !prevPairs.includes(v) && !selected.has(v))
-      )[0];
+        if (selected.has(crew)) {
+          return null;
+        }
+        selected.add(crew);
 
-      if (newPair === undefined) {
-        if (index < pairEntries.length - 1) {
-          throw new Error("Can't match pairs without duplication");
+        const newPair = shuffle(
+          crews.filter((v) => !prevPairs.includes(v) && !selected.has(v))
+        )[0];
+
+        if (newPair === undefined) {
+          if (selected.size < pairEntries.length - 1) {
+            throw new Error("Can't match pairs without duplication");
+          }
+
+          return [crew];
         }
 
-        return [crew];
-      }
+        selected.add(newPair);
 
-      return [crew, newPair];
-    });
+        return [crew, newPair];
+      })
+      .filter((v) => v !== null);
 
     if (pairs[pairs.length - 1].length < 2) {
       const soloCrew = pairs[pairs.length - 1][0];
-      const tripletTargetIndex = 0;
+      let tripletTargetIndex = 0;
 
       pairs = pairs.slice(0, -1);
 
@@ -111,4 +134,5 @@ const matchRandomPair = (crews, pairLogs, allowDuplication = false) => {
 
 module.exports = {
   matchRandomPair,
+  isPairsDuplicated,
 };
